@@ -118,16 +118,20 @@ const Home = (props: HomeProps) => {
         );
 
         console.log("prepare to make request")
-        await program.rpc.request(nonce, {
-            accounts: {
-                requester: provider.wallet.publicKey,
-                requestReference: ref.publicKey,
-                vault: vaultSigner,
-                state: stateSigner,
-                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-                systemProgram: anchor.web3.SystemProgram.programId
-            }
-        });
+        try {
+            await program.rpc.request(nonce, {
+                accounts: {
+                    requester: provider.wallet.publicKey,
+                    requestReference: ref.publicKey,
+                    vault: vaultSigner,
+                    state: stateSigner,
+                    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+                    systemProgram: anchor.web3.SystemProgram.programId
+                }
+            });
+        } catch (e) {
+            return
+        }
         setPDA(vaultSigner.toString())
 
         /*
