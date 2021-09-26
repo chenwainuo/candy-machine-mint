@@ -97,11 +97,11 @@ const Home = (props: HomeProps) => {
             return
         }
 
+        setResultJson(undefined);
         setResult(undefined);
         setPDA(undefined);
         setRequestId(undefined);
         setPolygonTransaction(undefined);
-        setResultJson(undefined);
         let [
             stateSigner,
             _,
