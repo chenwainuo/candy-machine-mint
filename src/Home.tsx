@@ -97,7 +97,7 @@ const Home = (props: HomeProps) => {
             return
         }
 
-        setResultJson(undefined);
+        setResultJson("");
         setResult(undefined);
         setPDA(undefined);
         setRequestId(undefined);
