@@ -25,10 +25,9 @@ export interface HomeProps {
 }
 
 export interface RandoPDA {
-    transaction: Array<number>,
-    requestId: Array<number>,
-    result: Array<number>
-    nonce: number
+    nonce: number,
+    numericResult: number,
+    requestReference: string
 }
 
 
@@ -37,8 +36,6 @@ const Home = (props: HomeProps) => {
     const [provider, setProvider] = useState<Provider>();
     const [program, setProgram] = useState<Program>();
     const [pda, setPDA] = useState<string>();
-    const [requestId, setRequestId] = useState<string>();
-    const [polygonTransaction, setPolygonTransaction] = useState<string>();
     const [result, setResult] = useState<string>();
     const [resultJson, setResultJson] = useState<string>();
     const wallet = useAnchorWallet();
@@ -49,7 +46,7 @@ const Home = (props: HomeProps) => {
                 const balance = await props.connection.getBalance(wallet.publicKey);
                 setBalance(balance / LAMPORTS_PER_SOL);
                 const provider = new anchor.Provider(props.connection, wallet as anchor.Wallet, Provider.defaultOptions());
-                const program = await anchor.Program.at('JDZWD3avGqpj5sypqoM9NHiCNrQPLtzgfjq2cduPGtkH', provider)
+                const program = await anchor.Program.at('27GMFVttde4Q5aiCSbk9dYz1FY5R5XmfzUmQJECW9GTz', provider)
                 setProvider(provider)
                 setProgram(program)
             }
@@ -63,25 +60,13 @@ const Home = (props: HomeProps) => {
         const interval = setInterval(async () => {
             if (program && pda && provider) {
                 try {
+                    console.log("fetch result...")
                     const resultJson = await program.account.randoResult.fetch(pda.toString()) as RandoPDA
+                    resultJson.requestReference = resultJson.requestReference.toString()
                     setResultJson(JSON.stringify(resultJson, null, 2))
-
-                    // transaction, requestId, result are all [u8;64]
-                    const transactionBN = new anchor.BN(Buffer.from(resultJson.transaction).toString(), 16)
-                    if (transactionBN.gt(new anchor.BN(0))) {
-                        setPolygonTransaction('0x' + transactionBN.toString(16))
-                    }
-
-                    const requestIdBN = new anchor.BN(Buffer.from(resultJson.requestId).toString(), 16)
-                    if (requestIdBN.gt(new anchor.BN(0))) {
-                        setRequestId('0x' + requestIdBN.toString(16))
-                    }
-
-                    const resultBN = new anchor.BN(Buffer.from(resultJson.result).toString(), 16)
-                    if (resultBN.gt(new anchor.BN(0))) {
-                        setResult(resultBN.toString())
-                    }
+                    setResult(resultJson.numericResult.toString())
                 } catch (e) {
+                    console.log("fetch result error", e)
                 }
             }
         }, 1000);
@@ -100,8 +85,6 @@ const Home = (props: HomeProps) => {
         setResultJson("");
         setResult(undefined);
         setPDA(undefined);
-        setRequestId(undefined);
-        setPolygonTransaction(undefined);
         let [
             stateSigner,
             _,
@@ -133,31 +116,10 @@ const Home = (props: HomeProps) => {
             return
         }
         setPDA(vaultSigner.toString())
-
-        /*
-
-        Event listener is for some reason not very reliable...
-
-        await program.addEventListener("FilledTransactionEvent", async (event, slot) => {
-            if (event.requestReference.toString() === pda) {
-                setRequestId(new anchor.BN(Buffer.from(event.requestId).toString(), 16).toString(16))
-                setPolygonTransaction(new anchor.BN(Buffer.from(event.transaction).toString(), 16).toString(16))
-            }
-        })
-        await program.addEventListener("FilledResultEvent", async (event, slot) => {
-            if (event.requestReference.toString() === pda) {
-                console.log("FilledResultEvent")
-                setResult(new anchor.BN(Buffer.from(event.result).toString(), 16).toString())
-                const resultJson = await program.account.randoResult.fetch(vaultSigner.toString())
-                setResultJson(JSON.stringify(resultJson, null, 2))
-            }
-        })
-        */
         console.log("made request...")
     };
 
     const requestMadeUrl = `https://explorer.solana.com/address/${pda}?cluster=devnet`
-    const polygonTransactionURL = `https://mumbai.polygonscan.com/tx/${polygonTransaction}`
 
     return (
         <main>
@@ -187,9 +149,6 @@ const Home = (props: HomeProps) => {
                 {pda ? (
                     <div>
                         <p>Rando PDA: <a target="_blank"  href={requestMadeUrl}>{pda}</a></p>
-                        <p>Rando result should show up in ~20 seoncds, please do not refresh..</p>
-                        <p>Poloygon Request Random Transaction: <a target="_blank"  href={polygonTransactionURL}>{polygonTransaction}</a></p>
-                        <p>Chainlink VRF Request ID: {requestId}</p>
                         <p>Rando number result: {result}</p>
                     </div>
                 ) : (<div/>)}
