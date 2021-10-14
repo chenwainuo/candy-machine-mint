@@ -76,15 +76,15 @@ const Home = (props: HomeProps) => {
     }, [wallet, provider, program, pda]);
 
     const onClick = async () => {
+        setResultJson("");
+        setResult(undefined);
+        setPDA(undefined);
 
         const ref = new anchor.web3.Keypair()
         if (!program || !provider) {
             return
         }
 
-        setResultJson("");
-        setResult(undefined);
-        setPDA(undefined);
         let [
             stateSigner,
             _,
