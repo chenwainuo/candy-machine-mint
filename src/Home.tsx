@@ -46,7 +46,7 @@ const Home = (props: HomeProps) => {
                 const balance = await props.connection.getBalance(wallet.publicKey);
                 setBalance(balance / LAMPORTS_PER_SOL);
                 const provider = new anchor.Provider(props.connection, wallet as anchor.Wallet, Provider.defaultOptions());
-                const program = await anchor.Program.at('27GMFVttde4Q5aiCSbk9dYz1FY5R5XmfzUmQJECW9GTz', provider)
+                const program = await anchor.Program.at('3Y14yRorqFNvDf1FeRUuHnXQS6Fz9adrcvo9xfLFRwZc', provider)
                 setProvider(provider)
                 setProgram(program)
             }
