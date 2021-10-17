@@ -25,8 +25,9 @@ import { createTheme, ThemeProvider } from "@material-ui/core";
 
 const network = process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork;
 
-const rpcHost = process.env.REACT_APP_SOLANA_RPC_HOST!;
-const connection = new anchor.web3.Connection(rpcHost);
+const connection = new anchor.web3.Connection("https://autumn-sparkling-darkness.solana-devnet.quiknode.pro/a7c997e28e2a691beb74945ba911660a157bbe6a/", {
+    commitment: "recent",
+});
 
 const startDateSeed = parseInt(process.env.REACT_APP_CANDY_START_DATE!, 10);
 

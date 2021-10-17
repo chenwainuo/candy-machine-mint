@@ -63,10 +63,51 @@ const Home = (props: HomeProps) => {
                 setProvider(provider)
                 setProgram(program)
                 setFlipCoin(flipCoin)
+
+                provider.connection.onProgramAccountChange(program.programId, async (p)=> {
+                    let resultJson = await program.account.randoResult.fetch(p.accountId) as RandoPDA
+                    resultJson.requestReference = resultJson.requestReference.toString()
+                    setResultJson(JSON.stringify(resultJson, null, 2))
+                    setResult(resultJson.numericResult.toString())
+                })
+
+                provider.connection.onProgramAccountChange(flipCoin.programId, async (p)=> {
+                    const betResultJson = await flipCoin.account.bet.fetch(p.accountId) as BetPDA
+                    betResultJson.vault = betResultJson.vault.toString()
+                    setBetResult(betResultJson)
+                })
+
             }
         })();
     }, [wallet, props.connection]);
 
+    useEffect(() => {
+        (async () => {
+            if (pda && provider && program && flipCoin) {
+                provider.connection.onProgramAccountChange(program.programId, async (p)=> {
+                    if (pda.pda !== p.accountId.toString()) {
+                        return
+                    }
+                    let resultJson = await program.account.randoResult.fetch(p.accountId) as RandoPDA
+                    resultJson.requestReference = resultJson.requestReference.toString()
+                    setResultJson(JSON.stringify(resultJson, null, 2))
+                    setResult(resultJson.numericResult.toString())
+                })
+
+                provider.connection.onProgramAccountChange(flipCoin.programId, async (p)=> {
+                    if (pda.betPDA !== p.accountId.toString()) {
+                        return
+                    }
+                    const betResultJson = await flipCoin.account.bet.fetch(p.accountId) as BetPDA
+                    betResultJson.vault = betResultJson.vault.toString()
+                    setBetResult(betResultJson)
+                })
+
+            }
+        })();
+    }, [wallet, props.connection, pda]);
+
+    /*
     useEffect(() => {
         if (betResult && betResult.status > 0) {
             return
@@ -107,7 +148,7 @@ const Home = (props: HomeProps) => {
             clearInterval(interval);
         };
     }, [wallet, provider, program, pda, betResult]);
-
+    */
     const onClick = async (side: number) => {
         setResultJson("");
         setResult(undefined);
