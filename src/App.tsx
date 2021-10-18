@@ -21,6 +21,7 @@ import {
 
 import { WalletDialogProvider } from "@solana/wallet-adapter-material-ui";
 import { createTheme, ThemeProvider } from "@material-ui/core";
+import Roulette from "./Roulette";
 
 
 const network = process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork;
@@ -77,7 +78,7 @@ const App = () => {
         <ConnectionProvider endpoint={endpoint}>
           <WalletProvider wallets={wallets} autoConnect>
             <WalletDialogProvider>
-              <Home
+              <Roulette
                 connection={connection}
                 txTimeout={txTimeout}
               />

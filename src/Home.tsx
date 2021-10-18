@@ -10,6 +10,7 @@ import {useAnchorWallet} from "@solana/wallet-adapter-react";
 import {WalletDialogButton} from "@solana/wallet-adapter-material-ui";
 
 import {Provider, Program} from "@project-serum/anchor";
+import Roulette from "./Roulette";
 
 const ConnectButton = styled(WalletDialogButton)``;
 
@@ -32,7 +33,8 @@ export interface RandoPDA {
 export interface BetPDA {
     side: number,
     status: number,
-    vault: string
+    vault: string,
+    ball: number
 }
 
 export interface PDAs {
@@ -263,7 +265,6 @@ const Home = (props: HomeProps) => {
                         <p>{resultJson}</p>
                     </div>
                 ) : (<div/>)}
-
             </MintContainer>
 
         </main>
