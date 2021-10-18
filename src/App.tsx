@@ -1,8 +1,5 @@
 import "./App.css";
 import { useMemo } from "react";
-
-import Home from "./Home";
-
 import * as anchor from "@project-serum/anchor";
 import { clusterApiUrl } from "@solana/web3.js";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
@@ -22,6 +19,7 @@ import {
 import { WalletDialogProvider } from "@solana/wallet-adapter-material-ui";
 import { createTheme, ThemeProvider } from "@material-ui/core";
 import Roulette from "./Roulette";
+import ButtonAppBar from "./ButtonAppBar";
 
 
 const network = process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork;
