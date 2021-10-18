@@ -134,7 +134,7 @@ const NumberButton =(props: NumberProps) => {
                 color = props.tableBet && props.betResult && props.betResult.ball >= 1 && props.betResult.ball <=18 && props.tableBet[43] > 0 ? winning_color : 'green';
                 break;
             case 44: text = "EVEN"; textX=15;
-                color = props.tableBet && props.betResult && props.betResult.ball % 2 === 0 && props.tableBet[47] > 0 ? winning_color : 'green';
+                color = props.tableBet && props.betResult && props.betResult.ball > 0 && props.betResult.ball % 2 === 0 && props.tableBet[47] > 0 ? winning_color : 'green';
                 break;
 
             case 45: text = "⚫"; textX=30;
