@@ -215,7 +215,8 @@ const Roulette = (props: RouletteProps) => {
     const [betResult, setBetResult] = useState<BetPDA>();
     const [randoResult, setRandoResult] = useState<RandoPDA>();
     const [tableBet, setTableBet] = useState<TableBet>();
-    const [requestReference, setRequestReference] = useState<PublicKey>();
+    const [maxListener, setMaxListener] = useState<number>()
+
 
     const wallet = useAnchorWallet();
 
@@ -223,28 +224,13 @@ const Roulette = (props: RouletteProps) => {
         (async () => {
             if (wallet) {
                 const provider = new anchor.Provider(props.connection, wallet as anchor.Wallet, Provider.defaultOptions());
-                const program = await anchor.Program.at('CFVk3Q9pN3W7qJaZbkmR5Jeb6TXsh51oSLvgEn3Szjd9', provider)
-                const roulette = await anchor.Program.at('DUu5HN7Sqb7vsjpc4EdkEqKpUBdEs3tyfGDd9FSvGpdZ', provider)
+                const randoProgram = await anchor.Program.at('CFVk3Q9pN3W7qJaZbkmR5Jeb6TXsh51oSLvgEn3Szjd9', provider)
+                const rouletteProgram = await anchor.Program.at('DUu5HN7Sqb7vsjpc4EdkEqKpUBdEs3tyfGDd9FSvGpdZ', provider)
                 setProvider(provider)
-                setRandoProgram(program)
-                setRouletteProgram(roulette)
-
-                provider.connection.onProgramAccountChange(program.programId, async (p)=> {
-                    let resultJson = await program.account.randoResult.fetch(p.accountId) as RandoPDA
-                    if (resultJson.requestReference === requestReference) {
-                        setRandoResult(resultJson)
-                    }
-                })
-
-                provider.connection.onProgramAccountChange(roulette.programId, async (p)=> {
-                    const betResultJson = await roulette.account.bet.fetch(p.accountId) as BetPDA
-                    betResultJson.vault = betResultJson.vault.toString()
-                    setBetResult(betResultJson)
-                    console.log(betResultJson)
-                })
+                setRandoProgram(randoProgram)
+                setRouletteProgram(rouletteProgram)
                 const balance = await props.connection.getBalance(wallet.publicKey);
                 setBalance(balance / LAMPORTS_PER_SOL);
-
             }
         })();
     }, [wallet, props.connection]);
@@ -291,7 +277,32 @@ const Roulette = (props: RouletteProps) => {
             rouletteProgram.programId
         );
 
-        console.log("prepare to make request")
+        if (maxListener) {
+            try {
+                await provider.connection.removeProgramAccountChangeListener(maxListener)
+                await provider.connection.removeProgramAccountChangeListener(maxListener - 1)
+            } catch (e) {
+
+            }
+        }
+
+        console.log(ref.publicKey.toString(), vaultSigner.toString())
+        const a = provider.connection.onProgramAccountChange(randoProgram.programId, async (p) => {
+            let resultJson = await randoProgram.account.randoResult.fetch(p.accountId) as RandoPDA
+            if (resultJson.requestReference.toString() === ref.publicKey.toString()) {
+                setRandoResult(resultJson)
+            }
+        })
+
+        const b = provider.connection.onProgramAccountChange(rouletteProgram.programId, async (p) => {
+            const betResultJson = await rouletteProgram.account.bet.fetch(p.accountId) as BetPDA
+            betResultJson.vault = betResultJson.vault.toString()
+            if (betResultJson.vault === vaultSigner.toString()) {
+                setBetResult(betResultJson)
+            }
+        })
+
+        setMaxListener(b)
         try {
             await rouletteProgram.rpc.spin(nonce, betNonce, bets, {
                 accounts: {
@@ -309,7 +320,6 @@ const Roulette = (props: RouletteProps) => {
         }
         const balance = await props.connection.getBalance(wallet.publicKey);
         setBalance(balance / LAMPORTS_PER_SOL);
-        setRequestReference(ref.publicKey);
     }
 
     const onClear = () => {
