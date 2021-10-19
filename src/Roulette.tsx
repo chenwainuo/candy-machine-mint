@@ -45,6 +45,7 @@ export interface RandoPDA {
 export interface BetPDA {
     side: number,
     status: number,
+    rolled: boolean,
     vault: string,
     ball: number,
     bets: Array<number>
@@ -134,15 +135,15 @@ const NumberButton =(props: NumberProps) => {
                 color = props.tableBet && props.betResult && props.betResult.ball >= 1 && props.betResult.ball <=18 && props.tableBet[43] > 0 ? winning_color : 'green';
                 break;
             case 44: text = "EVEN"; textX=15;
-                color = props.tableBet && props.betResult && props.betResult.ball > 0 && props.betResult.ball % 2 === 0 && props.tableBet[47] > 0 ? winning_color : 'green';
+                color = props.tableBet && props.betResult && props.betResult.ball > 0 && props.betResult.ball % 2 === 0 && props.tableBet[44] > 0 ? winning_color : 'green';
                 break;
 
-            case 45: text = "⚫"; textX=30;
-                color = props.tableBet && props.betResult && [15, 4, 2, 17, 6, 13, 11, 8, 10, 24, 33, 20, 31, 22, 29, 28, 35, 26].includes(props.betResult.ball) && props.tableBet[43] > 0 ? winning_color : 'green';
+            case 46: text = "⚫"; textX=30;
+                color = props.tableBet && props.betResult && [15, 4, 2, 17, 6, 13, 11, 8, 10, 24, 33, 20, 31, 22, 29, 28, 35, 26].includes(props.betResult.ball) && props.tableBet[46] > 0 ? winning_color : 'green';
                 break;
 
-            case 46: text = "🔴"; textX=30;
-                color = props.tableBet && props.betResult && [32, 19, 21, 25, 34, 27, 36, 30, 23, 5, 16, 1, 14, 9, 18, 7, 12, 3].includes(props.betResult.ball) && props.tableBet[43] > 0 ? winning_color : 'green';
+            case 45: text = "🔴"; textX=30;
+                color = props.tableBet && props.betResult && [32, 19, 21, 25, 34, 27, 36, 30, 23, 5, 16, 1, 14, 9, 18, 7, 12, 3].includes(props.betResult.ball) && props.tableBet[45] > 0 ? winning_color : 'green';
                 break;
 
             case 47: text = "ODD️"; textX=16;
@@ -164,7 +165,7 @@ const NumberButton =(props: NumberProps) => {
     }
 
     let winningIcon = ''
-    if (props.betResult && props.number === props.betResult.ball && props.betResult.status!==0) {
+    if (props.betResult && props.number === props.betResult.ball && props.betResult.rolled) {
         winningIcon = '🌟'
         if (props.tableBet && props.tableBet[props.number] > 0) {
             color=winning_color
@@ -445,9 +446,9 @@ const Roulette = (props: RouletteProps) => {
                     <SpacedGrid item xs={6}>
                         {betResult ? <Paper elevation={3}>
                             <SpacedGrid container item spacing={1} justifyContent="center" direction="column" alignItems="center">
-                                {betResult.status!==0 ? <SpacedGrid item><Typography style={{ userSelect: "none" }}>Ball: {JSON.stringify(betResult.ball)}</Typography></SpacedGrid>:<div/>}
+                                {betResult.rolled ? <SpacedGrid item><Typography style={{ userSelect: "none" }}>Ball: {JSON.stringify(betResult.ball)}</Typography></SpacedGrid>:<div/>}
                                 <SpacedGrid item><Typography style={{ userSelect: "none" }}>Total Bet: {betResult.bets.reduce(add)} pts</Typography></SpacedGrid>
-                                {betResult.status!==0 ? <SpacedGrid item><Typography style={{ userSelect: "none" }}>User receives: {JSON.stringify(betResult.bets.reduce(add) + betResult.status)} pts</Typography></SpacedGrid> :<div/>}
+                                {betResult.rolled ? <SpacedGrid item><Typography style={{ userSelect: "none" }}>User receives: {JSON.stringify(betResult.bets.reduce(add) + betResult.status)} pts</Typography></SpacedGrid> :<div/>}
                             </SpacedGrid>
                         </Paper> : <div/>}
                     </SpacedGrid>
