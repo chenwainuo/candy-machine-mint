@@ -298,10 +298,14 @@ const Roulette = (props: RouletteProps) => {
         })
 
         const b = provider.connection.onProgramAccountChange(rouletteProgram.programId, async (p) => {
-            const betResultJson = await rouletteProgram.account.bet.fetch(p.accountId) as BetPDA
-            betResultJson.vault = betResultJson.vault.toString()
-            if (betResultJson.vault === vaultSigner.toString()) {
-                setBetResult(betResultJson)
+            try {
+                const betResultJson = await rouletteProgram.account.bet.fetch(p.accountId) as BetPDA
+                betResultJson.vault = betResultJson.vault.toString()
+                if (betResultJson.vault === vaultSigner.toString()) {
+                    setBetResult(betResultJson)
+                }
+            } catch (e) {
+                console.log(e)
             }
         })
 
