@@ -21,7 +21,7 @@ import {Accordion, AccordionDetails, AccordionSummary} from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const ConnectButton = styled(WalletDialogButton)``;
-const SpinButton = styled(Button)`{background-color: #e17055; margin: 2px}`; // add your styles here
+const SpinButton = styled(Button)`{background-color: #ff9800; margin: 2px}`; // add your styles here
 const SpacedGrid = styled(Grid)`{ margin: 2px}`; // add your styles here
 
 // const MintButton = styled(Button)`{background-color: #008CBA;}`; // add your styles here
@@ -167,6 +167,8 @@ const NumberButton =(props: NumberProps) => {
     let winningIcon = ''
     if (props.betResult && props.number === props.betResult.ball && props.betResult.rolled) {
         winningIcon = '🌟'
+        color='#ff9800'
+        ellipseColor='#ff9800'
         if (props.tableBet && props.tableBet[props.number] > 0) {
             color=winning_color
         }
@@ -438,6 +440,7 @@ const Roulette = (props: RouletteProps) => {
                         </Grid>
                     </SpacedGrid>
                 </SpacedGrid>
+                <Typography> </Typography>
                 <SpacedGrid item spacing={2}>
                     {wallet && tableBet !== {} ? <SpinButton onClick={onSpin}>Spin</SpinButton>:<div/>}
                     <SpinButton onClick={onClear}>Clear</SpinButton>
