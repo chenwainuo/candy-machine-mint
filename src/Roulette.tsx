@@ -397,7 +397,7 @@ const Roulette = (props: RouletteProps) => {
                         toast(`🎲 Ball landed on ${betResultJson.ball}`, {
                             position: "bottom-left",
                             autoClose: 10000,
-                            hideProgressBar: true,
+                            hideProgressBar: false,
                             closeOnClick: true,
                             pauseOnHover: true,
                             draggable: false,
@@ -407,7 +407,7 @@ const Roulette = (props: RouletteProps) => {
                             toast(`🧧 Received $${betResultJson.bets.reduce(add) + betResultJson.status} ($${betResultJson.status > 0 ? '+': ''}${betResultJson.status})`, {
                                 position: "bottom-left",
                                 autoClose: 10000,
-                                hideProgressBar: true,
+                                hideProgressBar: false,
                                 closeOnClick: true,
                                 pauseOnHover: true,
                                 draggable: false,
@@ -440,10 +440,10 @@ const Roulette = (props: RouletteProps) => {
 
         try {
 
-            toast.info(`Waiting for transaction...`, {
+            const toastId = toast.info(`Waiting for transaction...`, {
                 position: "bottom-left",
                 autoClose: 10000,
-                hideProgressBar: true,
+                hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: false,
@@ -454,10 +454,13 @@ const Roulette = (props: RouletteProps) => {
                 accounts: spinAccount
             })
 
+            toast.dismiss(toastId);
+
+
             toast.success(`Bet $${bets.reduce(add)}. Waiting for ball to land...`, {
                 position: "bottom-left",
                 autoClose: 10000,
-                hideProgressBar: true,
+                hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: false,
@@ -475,6 +478,7 @@ const Roulette = (props: RouletteProps) => {
         setTableBet({})
         setBetResult(undefined)
         setRandoResult(undefined)
+        toast.dismiss();
     }
     if (!tableBet) {
         setTableBet({})
