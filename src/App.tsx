@@ -24,7 +24,7 @@ import ButtonAppBar from "./ButtonAppBar";
 
 const network = process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork;
 
-const connection = new anchor.web3.Connection("https://autumn-sparkling-darkness.solana-devnet.quiknode.pro/a7c997e28e2a691beb74945ba911660a157bbe6a/", {
+const connection = new anchor.web3.Connection("https://green-still-shape.solana-mainnet.quiknode.pro/86859a29a733baa0c457d849362ec1906edbd8ea/", {
     commitment: "recent",
 });
 

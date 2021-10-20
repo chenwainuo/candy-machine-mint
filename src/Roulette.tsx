@@ -2,7 +2,7 @@ import {Box, Button, Grid, Paper} from "@material-ui/core";
 import RouletteBoard from 'roulette-board'
 import 'roulette-board/dist/index.css'
 import styled from "styled-components";
-import {useEffect, useState} from "react";
+import {Dispatch, useEffect, useState} from "react";
 import * as anchor from "@project-serum/anchor";
 import {Program, Provider} from "@project-serum/anchor";
 import {useAnchorWallet} from "@solana/wallet-adapter-react";
@@ -19,12 +19,23 @@ import * as React from "react";
 import {verify} from 'noble-ed25519'
 import {Accordion, AccordionDetails, AccordionSummary} from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import serumCmn from "@project-serum/common";
+
+const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID: PublicKey = new PublicKey(
+    'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
+);
+
+const USDC: PublicKey = new PublicKey(
+    'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+);
+
 
 const ConnectButton = styled(WalletDialogButton)``;
 const SpinButton = styled(Button)`{background-color: #ff9800; margin: 2px}`; // add your styles here
 const SpacedGrid = styled(Grid)`{ margin: 2px}`; // add your styles here
 
-// const MintButton = styled(Button)`{background-color: #008CBA;}`; // add your styles here
+const MintButton = styled(Button)`{background-color: #008CBA;}`; // add your styles here
 const Item = styled(Paper)(({ theme }) => ({
     textAlign: 'center',
 }));
@@ -49,6 +60,14 @@ export interface BetPDA {
     vault: string,
     ball: number,
     bets: Array<number>
+}
+export interface GameState {
+    authority: PublicKey,
+    mint: PublicKey,
+    poolAccount: PublicKey,
+    poolSigner: PublicKey,
+    poolSignerBump: number,
+    initialized: boolean
 }
 
 
@@ -210,8 +229,24 @@ const NumberButton =(props: NumberProps) => {
 const add = (a:number, b:number) => a + b;
 
 
+async function findAssociatedTokenAddress(
+    walletAddress: PublicKey,
+    tokenMintAddress: PublicKey
+): Promise<PublicKey> {
+    return (await PublicKey.findProgramAddress(
+        [
+            walletAddress.toBuffer(),
+            TOKEN_PROGRAM_ID.toBuffer(),
+            tokenMintAddress.toBuffer(),
+        ],
+        SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
+    ))[0];
+}
+
+
 const Roulette = (props: RouletteProps) => {
-    const [balance, setBalance] = useState<number>();
+    const [usdcBalance, setUsdcBalance] = useState<number>();
+    const [poolBalance, setPoolBalance] = useState<number>();
     const [provider, setProvider] = useState<Provider>();
     const [randoProgram, setRandoProgram] = useState<Program>();
     const [rouletteProgram, setRouletteProgram] = useState<Program>();
@@ -219,9 +254,22 @@ const Roulette = (props: RouletteProps) => {
     const [randoResult, setRandoResult] = useState<RandoPDA>();
     const [tableBet, setTableBet] = useState<TableBet>();
     const [maxListener, setMaxListener] = useState<number>()
+    const [rouletteStateSigner, setRouletteStateSigner] = useState<PublicKey>()
+    const [stateBump, setStateBump] = useState<number>()
+    const [poolAccount, setPoolAccount] = useState<PublicKey>()
 
 
     const wallet = useAnchorWallet();
+
+    const updateBalances = async (usdcAddress:PublicKey, setStateFn: Dispatch<number>) => {
+        try {
+            console.log(usdcAddress.toString())
+            const usdcBalance = (await props.connection.getTokenAccountBalance(usdcAddress)).value.uiAmount
+            setStateFn(usdcBalance ? usdcBalance : 0)
+        } catch(e) {
+
+        }
+    }
 
     useEffect(() => {
         (async () => {
@@ -232,8 +280,31 @@ const Roulette = (props: RouletteProps) => {
                 setProvider(provider)
                 setRandoProgram(randoProgram)
                 setRouletteProgram(rouletteProgram)
-                const balance = await props.connection.getBalance(wallet.publicKey);
-                setBalance(balance / LAMPORTS_PER_SOL);
+
+                let [
+                    rouletteStateSigner,
+                    stateBump,
+                ] = await anchor.web3.PublicKey.findProgramAddress(
+                    [Buffer.from(anchor.utils.bytes.utf8.encode("state"))],
+                    rouletteProgram.programId);
+
+                const state = await rouletteProgram.account.gameState.fetch(rouletteStateSigner) as GameState
+                setPoolAccount(state.poolAccount);
+                setRouletteStateSigner(rouletteStateSigner)
+                setStateBump(stateBump)
+
+
+                const usdcAddress = await findAssociatedTokenAddress(wallet.publicKey, USDC)
+
+                updateBalances(usdcAddress, setUsdcBalance)
+                provider.connection.onAccountChange(usdcAddress, async () => {
+                    updateBalances(usdcAddress, setUsdcBalance)
+                })
+                updateBalances(state.poolAccount, setPoolBalance)
+                provider.connection.onAccountChange(state.poolAccount, async () => {
+                    updateBalances(state.poolAccount, setPoolBalance)
+                })
+
             }
         })();
     }, [wallet, props.connection]);
@@ -310,23 +381,30 @@ const Roulette = (props: RouletteProps) => {
         })
 
         setMaxListener(b)
+
+        const spinAccount = {
+            bet: betSigner,
+            solanaAnchorRandoProgram: randoProgram.programId,
+            requester: rouletteProgram.provider.wallet.publicKey,
+            requesterUsdcAccount: await findAssociatedTokenAddress(wallet.publicKey, USDC),
+            state:rouletteStateSigner,
+            poolAccount,
+            requestReference: ref.publicKey,
+            vault: vaultSigner,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+            systemProgram: anchor.web3.SystemProgram.programId
+        }
+
+        console.log(spinAccount)
+
         try {
-            await rouletteProgram.rpc.spin(nonce, betNonce, bets, {
-                accounts: {
-                    bet: betSigner,
-                    solanaAnchorRandoProgram: randoProgram.programId,
-                    requester: rouletteProgram.provider.wallet.publicKey,
-                    requestReference: ref.publicKey,
-                    vault: vaultSigner,
-                    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-                    systemProgram: anchor.web3.SystemProgram.programId
-                }
+            await rouletteProgram.rpc.spin(nonce, betNonce, stateBump, bets, {
+                accounts: spinAccount
             })
         } catch (e) {
-            return
+            console.log(e)
         }
-        const balance = await props.connection.getBalance(wallet.publicKey);
-        setBalance(balance / LAMPORTS_PER_SOL);
     }
 
     const onClear = () => {
@@ -350,20 +428,23 @@ const Roulette = (props: RouletteProps) => {
                         sx={{ mr: 2 }}
                     >
                     </IconButton>
-                    <Typography style={{ userSelect: "none" }} variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        🎲 Rando Roulette
-                    </Typography>
+                            <Typography style={{ userSelect: "none" }} variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                                🎲 Rando Roulette
+                            </Typography>
 
                     {!wallet ? (
                         <ConnectButton>Connect Wallet</ConnectButton>
                     ) : (
                             <div>
                             </div>)}
-                    {wallet && (
-                        <div>
-                            <p style={{ userSelect: "none" }}>Devnet Balance: {(balance || 0).toLocaleString()} SOL</p>
-                        </div>
-                    )}
+                    <div>
+                        {wallet && (
+                            <div>
+                            <p style={{ userSelect: "none" }}>Pool Balance: ${(poolBalance || 0).toLocaleString()}</p>
+                            <p style={{ userSelect: "none" }}>USDC Balance: ${(usdcBalance || 0).toLocaleString()}</p>
+                            </div>
+                        )}
+                    </div>
 
                 </Toolbar>
             </AppBar>
