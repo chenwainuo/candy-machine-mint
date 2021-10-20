@@ -535,8 +535,8 @@ const Roulette = (props: RouletteProps) => {
                         {betResult ? <Paper elevation={3}>
                             <SpacedGrid container item spacing={1} justifyContent="center" direction="column" alignItems="center">
                                 {betResult.rolled ? <SpacedGrid item><Typography style={{ userSelect: "none" }}>Ball: {JSON.stringify(betResult.ball)}</Typography></SpacedGrid>:<div/>}
-                                <SpacedGrid item><Typography style={{ userSelect: "none" }}>Total Bet: {betResult.bets.reduce(add)} pts</Typography></SpacedGrid>
-                                {betResult.rolled ? <SpacedGrid item><Typography style={{ userSelect: "none" }}>User receives: {JSON.stringify(betResult.bets.reduce(add) + betResult.status)} pts</Typography></SpacedGrid> :<div/>}
+                                <SpacedGrid item><Typography style={{ userSelect: "none" }}>Total Bet: {betResult.bets.reduce(add)} USDC</Typography></SpacedGrid>
+                                {betResult.rolled ? <SpacedGrid item><Typography style={{ userSelect: "none" }}>User receives: {JSON.stringify(betResult.bets.reduce(add) + betResult.status)} USDC</Typography></SpacedGrid> :<div/>}
                             </SpacedGrid>
                         </Paper> : <div/>}
                     </SpacedGrid>
